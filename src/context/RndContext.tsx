@@ -23,55 +23,9 @@ export const RND_STEPS: RndStep[] = [
   'Launching'
 ];
 
-const mockInitialProducts: RndProduct[] = [
-  {
-    id: 'rnd-1',
-    product_name: 'Payung Fullprint',
-    pic: 'Andi',
-    current_step: 'Cari Vendor',
-    start_date: '2026-08-10T00:00:00.000Z',
-    last_update: '2026-08-18T00:00:00.000Z',
-    deadline: '2026-08-25T00:00:00.000Z',
-    notes: 'Vendor dari Bandung',
-    created_at: '2026-08-10T00:00:00.000Z',
-    updated_at: '2026-08-18T00:00:00.000Z',
-  },
-  {
-    id: 'rnd-2',
-    product_name: 'Tumbler Insert Paper',
-    pic: 'Dita',
-    current_step: 'Design',
-    start_date: '2026-08-12T00:00:00.000Z',
-    last_update: '2026-08-17T00:00:00.000Z',
-    deadline: '2026-08-27T00:00:00.000Z',
-    notes: 'Revisi logo sedikit',
-    created_at: '2026-08-12T00:00:00.000Z',
-    updated_at: '2026-08-17T00:00:00.000Z',
-  },
-  {
-    id: 'rnd-3',
-    product_name: 'Hardbox Premium',
-    pic: 'Andi',
-    current_step: 'Update Modal',
-    start_date: '2026-08-01T00:00:00.000Z',
-    last_update: '2026-08-16T00:00:00.000Z',
-    deadline: '2026-08-23T00:00:00.000Z',
-    notes: '',
-    created_at: '2026-08-01T00:00:00.000Z',
-    updated_at: '2026-08-16T00:00:00.000Z',
-  }
-];
+const mockInitialProducts: RndProduct[] = [];
 
-const mockInitialHistories: RndHistory[] = [
-  {
-    id: 'hist-1',
-    product_id: 'rnd-2',
-    from_step: 'Cari Vendor',
-    to_step: 'Design',
-    changed_by: 'Dita',
-    changed_at: '2026-08-17T00:00:00.000Z'
-  }
-];
+const mockInitialHistories: RndHistory[] = [];
 
 export function RndProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<RndProduct[]>(() => {

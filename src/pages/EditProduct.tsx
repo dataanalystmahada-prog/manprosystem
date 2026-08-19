@@ -6,6 +6,167 @@ import { useFaqs } from '../context/FaqContext';
 import { Product } from '../types';
 import { ArrowLeft, Save, Edit, Trash2, X, ImagePlus, Loader2, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
 
+interface FieldProps {
+  label: string;
+  value: any;
+  field: keyof Product;
+  type?: string;
+  prefix?: string;
+  isEditing: boolean;
+  isSaving: boolean;
+  onChange: (field: keyof Product, value: any) => void;
+}
+
+const Field = ({ label, value, field, type = 'text', prefix, isEditing, isSaving, onChange }: FieldProps) => (
+  <div>
+    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
+    {isEditing ? (
+      <div className="relative">
+        {prefix && <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-500 text-[13px] font-medium">{prefix}</div>}
+        <input
+          type={type}
+          value={value || ''}
+          onChange={(e) => onChange(field, type === 'number' ? Number(e.target.value) : e.target.value)}
+          className={`w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-[13px] text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${prefix ? 'pl-8' : ''}`}
+          disabled={isSaving}
+        />
+      </div>
+    ) : (
+      <div className="text-[13px] font-semibold text-slate-900 py-1 min-h-[32px] flex items-center">
+        {value ? `${prefix ? prefix + ' ' : ''}${value}` : <span className="text-slate-400 font-normal italic">Not specified</span>}
+      </div>
+    )}
+  </div>
+);
+
+interface TextAreaFieldProps {
+  label: string;
+  value: any;
+  field: keyof Product;
+  isEditing: boolean;
+  isSaving: boolean;
+  onChange: (field: keyof Product, value: any) => void;
+}
+
+const TextAreaField = ({ label, value, field, isEditing, isSaving, onChange }: TextAreaFieldProps) => (
+  <div>
+    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
+    {isEditing ? (
+      <textarea
+        value={value || ''}
+        onChange={(e) => onChange(field, e.target.value)}
+        rows={3}
+        className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-[13px] text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-colors resize-y"
+        disabled={isSaving}
+      />
+    ) : (
+      <div className="text-[13px] font-medium text-slate-700 py-1 whitespace-pre-wrap min-h-[32px]">
+        {value || <span className="text-slate-400 font-normal italic">Not specified</span>}
+      </div>
+    )}
+  </div>
+);
+
+interface SelectFieldProps {
+  label: string;
+  value: any;
+  field: keyof Product;
+  options: string[];
+  isEditing: boolean;
+  isSaving: boolean;
+  onChange: (field: keyof Product, value: any) => void;
+}
+
+const SelectField = ({ label, value, field, options, isEditing, isSaving, onChange }: SelectFieldProps) => (
+  <div>
+    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
+    {isEditing ? (
+      <div className="relative">
+        <select
+          value={value || ''}
+          onChange={(e) => onChange(field, e.target.value)}
+          className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-[13px] text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-colors appearance-none pr-8"
+          disabled={isSaving}
+        >
+          <option value="" disabled>Pilih {label}</option>
+          {options.map(opt => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+          <ChevronDown className="w-4 h-4" />
+        </div>
+      </div>
+    ) : (
+      <div className="text-[13px] font-medium text-slate-700 py-1 min-h-[32px] flex items-center">
+        {value || <span className="text-slate-400 font-normal italic">Not specified</span>}
+      </div>
+    )}
+  </div>
+);
+
+interface ImageSlotProps {
+  index: number;
+  label: string;
+  existingUrl?: string;
+  previewUrl?: string;
+  isEditing: boolean;
+  isSaving: boolean;
+  onImageChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage: (index: number, e: React.MouseEvent) => void;
+}
+
+const ImageSlot = ({ index, label, existingUrl, previewUrl, isEditing, isSaving, onImageChange, onRemoveImage }: ImageSlotProps) => {
+  const displayUrl = previewUrl || (existingUrl && existingUrl !== '' ? existingUrl : null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleClick = () => {
+    if (isEditing && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  return (
+    <>
+      <input 
+        type="file" 
+        accept="image/*" 
+        className="hidden" 
+        ref={fileInputRef}
+        onChange={(e) => onImageChange(index, e)}
+        disabled={isSaving}
+      />
+      {displayUrl ? (
+        <div 
+          onClick={handleClick}
+          className={`relative w-full h-full group rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center ${isEditing ? 'cursor-pointer' : ''}`}
+        >
+           <img src={displayUrl} alt={label} className="w-full h-full object-cover" />
+           {isEditing && (
+             <div className="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-white text-xs font-bold uppercase tracking-wider mb-2">Change</span>
+                <button 
+                  onClick={(e) => onRemoveImage(index, e)}
+                  className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded shadow hover:bg-red-700"
+                >
+                  Remove
+                </button>
+             </div>
+           )}
+        </div>
+      ) : (
+        <div 
+          onClick={handleClick}
+          className={`w-full h-full rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 bg-slate-50 text-slate-400 ${isEditing ? 'hover:bg-slate-100 hover:border-blue-400 hover:text-blue-500 cursor-pointer transition-colors' : ''}`}
+        >
+           <ImagePlus className="w-6 h-6" />
+           <span className="text-[10px] font-bold uppercase tracking-wider text-center px-2">{label}</span>
+        </div>
+      )}
+    </>
+  );
+};
+
 export function EditProduct({ isNew = false }: { isNew?: boolean }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -183,126 +344,8 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
     });
   };
 
-  const Field = ({ label, value, field, type = 'text', prefix }: { label: string, value: any, field: keyof Product, type?: string, prefix?: string }) => (
-    <div>
-      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
-      {isEditing ? (
-        <div className="relative">
-          {prefix && <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-500 text-[13px] font-medium">{prefix}</div>}
-          <input
-            type={type}
-            value={value || ''}
-            onChange={(e) => setProduct(prev => prev ? { ...prev, [field]: type === 'number' ? Number(e.target.value) : e.target.value } : null)}
-            className={`w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-[13px] text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${prefix ? 'pl-8' : ''}`}
-            disabled={isSaving}
-          />
-        </div>
-      ) : (
-        <div className="text-[13px] font-semibold text-slate-900 py-1 min-h-[32px] flex items-center">
-          {value ? `${prefix ? prefix + ' ' : ''}${value}` : <span className="text-slate-400 font-normal italic">Not specified</span>}
-        </div>
-      )}
-    </div>
-  );
-
-  const TextAreaField = ({ label, value, field }: { label: string, value: any, field: keyof Product }) => (
-    <div>
-      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
-      {isEditing ? (
-        <textarea
-          value={value || ''}
-          onChange={(e) => setProduct(prev => prev ? { ...prev, [field]: e.target.value } : null)}
-          rows={3}
-          className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-[13px] text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-colors resize-y"
-          disabled={isSaving}
-        />
-      ) : (
-        <div className="text-[13px] font-medium text-slate-700 py-1 whitespace-pre-wrap min-h-[32px]">
-          {value || <span className="text-slate-400 font-normal italic">Not specified</span>}
-        </div>
-      )}
-    </div>
-  );
-
-  const SelectField = ({ label, value, field, options }: { label: string, value: any, field: keyof Product, options: string[] }) => (
-    <div>
-      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
-      {isEditing ? (
-        <div className="relative">
-          <select
-            value={value || ''}
-            onChange={(e) => setProduct(prev => prev ? { ...prev, [field]: e.target.value } : null)}
-            className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-[13px] text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-colors appearance-none pr-8"
-            disabled={isSaving}
-          >
-            <option value="" disabled>Pilih {label}</option>
-            {options.map(opt => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-            <ChevronDown className="w-4 h-4" />
-          </div>
-        </div>
-      ) : (
-        <div className="text-[13px] font-medium text-slate-700 py-1 min-h-[32px] flex items-center">
-          {value || <span className="text-slate-400 font-normal italic">Not specified</span>}
-        </div>
-      )}
-    </div>
-  );
-
-  const ImageSlot = ({ index, label }: { index: number, label: string }) => {
-    const existingUrl = product?.images?.[index];
-    const previewUrl = previewUrls[index];
-    const displayUrl = previewUrl || (existingUrl && existingUrl !== '' ? existingUrl : null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleClick = () => {
-      if (isEditing && fileInputRef.current) {
-        fileInputRef.current.click();
-      }
-    };
-
-    return (
-      <>
-        <input 
-          type="file" 
-          accept="image/*" 
-          className="hidden" 
-          ref={fileInputRef}
-          onChange={(e) => handleImageChange(index, e)}
-          disabled={isSaving}
-        />
-        {displayUrl ? (
-          <div 
-            onClick={handleClick}
-            className={`relative w-full h-full group rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center ${isEditing ? 'cursor-pointer' : ''}`}
-          >
-             <img src={displayUrl} alt={label} className="w-full h-full object-cover" />
-             {isEditing && (
-               <div className="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-white text-xs font-bold uppercase tracking-wider mb-2">Change</span>
-                  <button 
-                    onClick={(e) => handleRemoveImage(index, e)}
-                    className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded shadow hover:bg-red-700"
-                  >
-                    Remove
-                  </button>
-               </div>
-             )}
-          </div>
-        ) : (
-          <div 
-            onClick={handleClick}
-            className={`w-full h-full rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 bg-slate-50 text-slate-400 ${isEditing ? 'hover:bg-slate-100 hover:border-blue-400 hover:text-blue-500 cursor-pointer transition-colors' : ''}`}
-          >
-             <ImagePlus className="w-6 h-6" />
-             <span className="text-[10px] font-bold uppercase tracking-wider text-center px-2">{label}</span>
-          </div>
-        )}
-      </>
-    );
+  const handleFieldChange = (field: keyof Product, value: any) => {
+    setProduct(prev => prev ? { ...prev, [field]: value } : null);
   };
 
   return (
@@ -380,16 +423,16 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
           {/* Gallery (Max 4 slots) */}
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-3 aspect-square">
-              <ImageSlot index={0} label="Main Photo (Photo 1)" />
+              <ImageSlot index={0} label="Main Photo (Photo 1)" existingUrl={product?.images?.[0]} previewUrl={previewUrls[0]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} />
             </div>
             <div className="col-span-1 aspect-square">
-              <ImageSlot index={1} label="Photo 2" />
+              <ImageSlot index={1} label="Photo 2" existingUrl={product?.images?.[1]} previewUrl={previewUrls[1]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} />
             </div>
             <div className="col-span-1 aspect-square">
-              <ImageSlot index={2} label="Photo 3" />
+              <ImageSlot index={2} label="Photo 3" existingUrl={product?.images?.[2]} previewUrl={previewUrls[2]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} />
             </div>
             <div className="col-span-1 aspect-square">
-              <ImageSlot index={3} label="Photo 4" />
+              <ImageSlot index={3} label="Photo 4" existingUrl={product?.images?.[3]} previewUrl={previewUrls[3]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} />
             </div>
           </div>
 
@@ -451,21 +494,21 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Product Name" value={product.name} field="name" />
-              <SelectField label="Produk" value={product.produk} field="produk" options={settings.products} />
+              <Field label="Product Name" value={product.name} field="name" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
+              <SelectField label="Produk" value={product.produk} field="produk" options={settings.products} isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Warna" value={product.color} field="color" />
-              <SelectField label="Sub Produk" value={product.subProduk} field="subProduk" options={settings.subProducts} />
+              <Field label="Warna" value={product.color} field="color" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
+              <SelectField label="Sub Produk" value={product.subProduk} field="subProduk" options={settings.subProducts} isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
             </div>
 
-            <TextAreaField label="Keunggulan Produk" value={product.description} field="description" />
+            <TextAreaField label="Keunggulan Produk" value={product.description} field="description" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
-              <Field label="Price (100 pcs)" value={product.price} field="price" type="number" prefix="Rp" />
-              <Field label="Minimal Order" value={product.minimalOrder} field="minimalOrder" type="number" />
-              <Field label="Price Sample" value={product.priceSample} field="priceSample" type="number" prefix="Rp" />
+              <Field label="Price (100 pcs)" value={product.price} field="price" type="number" prefix="Rp" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
+              <Field label="Minimal Order" value={product.minimalOrder} field="minimalOrder" type="number" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
+              <Field label="Price Sample" value={product.priceSample} field="priceSample" type="number" prefix="Rp" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
                 {isEditing ? (
@@ -499,19 +542,18 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
-              <Field label="Specifications" value={product.specifications} field="specifications" />
-              <Field label="Material" value={product.material} field="material" />
-              <Field label="Size / Dimensions" value={product.size} field="size" />
-              <Field label="Weight" value={product.weight} field="weight" />
+              <Field label="Specifications" value={product.specifications} field="specifications" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
+              <Field label="Material" value={product.material} field="material" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
+              <Field label="Size / Dimensions" value={product.size} field="size" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
+              <Field label="Weight" value={product.weight} field="weight" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
             </div>
             
-            <TextAreaField label="Production Info" value={product.productionInfo} field="productionInfo" />
+            <TextAreaField label="Production Info" value={product.productionInfo} field="productionInfo" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
             <h2 className="text-[13px] font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">Internal & Management</h2>
-            
-            <TextAreaField label="Internal Notes" value={product.internalNotes} field="internalNotes" />
+            <TextAreaField label="Internal Notes" value={product.internalNotes} field="internalNotes" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
             
             {/* Categories / Tags Checklist */}
             <div className="pt-1">
