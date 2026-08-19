@@ -8,6 +8,7 @@ interface RndContextType {
   updateProduct: (id: string, updates: Partial<RndProduct>) => void;
   moveProduct: (productId: string, toStep: RndStep, changedBy: string) => void;
   deleteProduct: (id: string) => void;
+  completeProduct: (id: string) => void;
 }
 
 const RndContext = createContext<RndContextType | undefined>(undefined);
@@ -29,21 +30,21 @@ const mockInitialHistories: RndHistory[] = [];
 
 export function RndProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<RndProduct[]>(() => {
-    const saved = localStorage.getItem('manpro_rnd_products');
+    const saved = localStorage.getItem('manpro_rnd_products_v2');
     return saved ? JSON.parse(saved) : mockInitialProducts;
   });
 
   const [histories, setHistories] = useState<RndHistory[]>(() => {
-    const saved = localStorage.getItem('manpro_rnd_histories');
+    const saved = localStorage.getItem('manpro_rnd_histories_v2');
     return saved ? JSON.parse(saved) : mockInitialHistories;
   });
 
   useEffect(() => {
-    localStorage.setItem('manpro_rnd_products', JSON.stringify(products));
+    localStorage.setItem('manpro_rnd_products_v2', JSON.stringify(products));
   }, [products]);
 
   useEffect(() => {
-    localStorage.setItem('manpro_rnd_histories', JSON.stringify(histories));
+    localStorage.setItem('manpro_rnd_histories_v2', JSON.stringify(histories));
   }, [histories]);
 
   const addProduct = (productData: Omit<RndProduct, 'id' | 'current_step' | 'start_date' | 'last_update' | 'created_at' | 'updated_at'>) => {
@@ -100,8 +101,14 @@ export function RndProvider({ children }: { children: React.ReactNode }) {
     setHistories(prev => prev.filter(h => h.product_id !== id));
   };
 
+  const completeProduct = (id: string) => {
+    setProducts(prev => prev.map(p => 
+      p.id === id ? { ...p, is_completed: true, updated_at: new Date().toISOString() } : p
+    ));
+  };
+
   return (
-    <RndContext.Provider value={{ products, histories, addProduct, updateProduct, moveProduct, deleteProduct }}>
+    <RndContext.Provider value={{ products, histories, addProduct, updateProduct, moveProduct, deleteProduct, completeProduct }}>
       {children}
     </RndContext.Provider>
   );

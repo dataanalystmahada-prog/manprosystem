@@ -19,10 +19,11 @@ import { id } from 'date-fns/locale';
 interface SortableProductCardProps {
   product: RndProduct;
   onClick: (product: RndProduct) => void;
+  onComplete?: (product: RndProduct) => void;
 }
 
 const ProductCard = React.forwardRef<HTMLDivElement, SortableProductCardProps & { style?: React.CSSProperties, isDragging?: boolean, listeners?: any, attributes?: any }>(
-  ({ product, onClick, style, isDragging, listeners, attributes }, ref) => {
+  ({ product, onClick, onComplete, style, isDragging, listeners, attributes }, ref) => {
     
     // Deadline status logic
     const today = startOfDay(new Date());
@@ -50,9 +51,20 @@ const ProductCard = React.forwardRef<HTMLDivElement, SortableProductCardProps & 
       >
         <div className="flex justify-between items-start mb-1.5">
           <h4 className="font-bold text-[13px] text-slate-900 leading-tight pr-5">{product.product_name}</h4>
-          <button className="text-slate-400 hover:text-slate-600 absolute right-1.5 top-1.5 p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); onClick(product); }}>
-            <MoreVertical className="w-3.5 h-3.5" />
-          </button>
+          <div className="absolute right-1.5 top-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {product.current_step === 'Launching' && onComplete && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); onComplete(product); }}
+                className="text-emerald-500 hover:text-emerald-600 p-1 rounded-md hover:bg-emerald-50 bg-white border border-slate-200 shadow-sm transition-colors"
+                title="Selesaikan"
+              >
+                <CheckCircle className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <button className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 bg-white border border-slate-200 shadow-sm transition-colors" onClick={(e) => { e.stopPropagation(); onClick(product); }}>
+              <MoreVertical className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
         
         <div className="text-[11px] text-slate-500 mb-1.5">
@@ -95,7 +107,7 @@ const ProductCard = React.forwardRef<HTMLDivElement, SortableProductCardProps & 
   }
 );
 
-const SortableProductCard = ({ product, onClick }: SortableProductCardProps) => {
+const SortableProductCard = ({ product, onClick, onComplete }: SortableProductCardProps) => {
   const {
     attributes,
     listeners,
@@ -122,6 +134,7 @@ const SortableProductCard = ({ product, onClick }: SortableProductCardProps) => 
       style={style} 
       product={product} 
       onClick={onClick} 
+      onComplete={onComplete}
       isDragging={isDragging}
       attributes={attributes}
       listeners={listeners}
@@ -130,7 +143,7 @@ const SortableProductCard = ({ product, onClick }: SortableProductCardProps) => 
 };
 
 export function KanbanRnd() {
-  const { products, moveProduct } = useRnd();
+  const { products, moveProduct, completeProduct } = useRnd();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPic, setSelectedPic] = useState('Semua PIC');
   
@@ -148,6 +161,7 @@ export function KanbanRnd() {
   // Filter products
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
+      if (p.is_completed) return false;
       const matchSearch = p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           p.pic.toLowerCase().includes(searchTerm.toLowerCase());
       const matchPic = selectedPic === 'Semua PIC' || p.pic === selectedPic;
@@ -323,6 +337,9 @@ export function KanbanRnd() {
                     setSelectedProduct(p);
                     setIsAddModalOpen(true);
                   }}
+                  onProductComplete={(p) => {
+                    completeProduct(p.id);
+                  }}
                 />
               );
             })}
@@ -368,9 +385,10 @@ interface KanbanColumnProps {
   products: RndProduct[];
   getStepNumberBadge: (step: RndStep, index: number) => React.ReactNode;
   onProductClick: (product: RndProduct) => void;
+  onProductComplete?: (product: RndProduct) => void;
 }
 
-function KanbanColumn({ step, index, products, getStepNumberBadge, onProductClick }: KanbanColumnProps) {
+function KanbanColumn({ step, index, products, getStepNumberBadge, onProductClick, onProductComplete }: KanbanColumnProps) {
   const { setNodeRef } = useSortable({
     id: `column-${step}`,
     data: {
@@ -403,6 +421,7 @@ function KanbanColumn({ step, index, products, getStepNumberBadge, onProductClic
                   key={product.id} 
                   product={product} 
                   onClick={onProductClick} 
+                  onComplete={onProductComplete}
                 />
               ))}
             </SortableContext>

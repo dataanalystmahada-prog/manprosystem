@@ -38,8 +38,8 @@ export interface Product {
 export interface Poster {
   id: string;
   poster_name: string;
-  product_id: string;
-  product_name: string;
+  product_id?: string;
+  product_name?: string;
   category: string;
   image_url: string;
   description: string;
@@ -87,6 +87,7 @@ export interface RndProduct {
   notes: string;
   created_at: string;
   updated_at: string;
+  is_completed?: boolean;
 }
 
 export interface RndHistory {

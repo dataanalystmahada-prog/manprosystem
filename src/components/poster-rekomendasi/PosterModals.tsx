@@ -10,12 +10,9 @@ export function PosterFormModal({
   isOpen: boolean, onClose: () => void, poster?: Poster, 
   onSave: (data: Partial<Poster>) => void 
 }) {
-  const { products, categories } = useProducts();
   const [formData, setFormData] = useState<Partial<Poster>>(poster || {
     poster_name: '',
-    product_id: '',
-    product_name: '',
-    category: '',
+    category: 'Elektronik', // Default category
     description: '',
     status: 'Aktif',
     image_url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800',
@@ -25,23 +22,11 @@ export function PosterFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.poster_name || !formData.product_id) {
-      alert("Nama poster dan produk wajib diisi");
+    if (!formData.poster_name) {
+      alert("Nama poster wajib diisi");
       return;
     }
     onSave(formData);
-  };
-
-  const handleProductChange = (productId: string) => {
-    const prod = products.find(p => p.id === productId);
-    if (prod) {
-      setFormData({
-        ...formData, 
-        product_id: prod.id, 
-        product_name: prod.name,
-        category: categories.find(c => c.id === prod.categoryId)?.name || prod.tags?.[0] || 'Uncategorized'
-      });
-    }
   };
 
   return (
@@ -104,17 +89,20 @@ export function PosterFormModal({
           </div>
 
           <div>
-            <label className="block text-[13px] font-medium text-slate-700 mb-1">Produk Terkait</label>
+            <label className="block text-[13px] font-medium text-slate-700 mb-1">Kategori</label>
             <select 
               required
-              value={formData.product_id}
-              onChange={e => handleProductChange(e.target.value)}
+              value={formData.category}
+              onChange={e => setFormData({...formData, category: e.target.value})}
               className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-1.5 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all appearance-none"
             >
-              <option value="">Pilih Produk...</option>
-              {products.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
+              <option value="Elektronik">Elektronik</option>
+              <option value="Apparel">Apparel</option>
+              <option value="Merchandise">Merchandise</option>
+              <option value="Agenda">Agenda</option>
+              <option value="Tumbler">Tumbler</option>
+              <option value="Payung">Payung</option>
+              <option value="Lainnya">Lainnya</option>
             </select>
           </div>
 
