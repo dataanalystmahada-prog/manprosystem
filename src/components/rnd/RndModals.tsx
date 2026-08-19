@@ -4,6 +4,7 @@ import { X, Search } from 'lucide-react';
 import { useRnd } from '../../context/RndContext';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { useSettings } from '../../context/SettingsContext';
 
 interface RndFormModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface RndFormModalProps {
 
 export function RndFormModal({ isOpen, onClose, product }: RndFormModalProps) {
   const { addProduct, updateProduct, histories } = useRnd();
+  const { settings } = useSettings();
   const [formData, setFormData] = useState({
     product_name: product?.product_name || '',
     pic: product?.pic || '',
@@ -105,12 +107,9 @@ export function RndFormModal({ isOpen, onClose, product }: RndFormModalProps) {
                     className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
                   >
                     <option value="">Pilih PIC...</option>
-                    <option value="Andi">Andi</option>
-                    <option value="Budi">Budi</option>
-                    <option value="Citra">Citra</option>
-                    <option value="Dita">Dita</option>
-                    <option value="Raka">Raka</option>
-                    <option value="Sinta">Sinta</option>
+                    {settings.pics.map(pic => (
+                      <option key={pic} value={pic}>{pic}</option>
+                    ))}
                   </select>
                 </div>
                 <div>

@@ -4,7 +4,7 @@ import { useProducts } from '../context/ProductContext';
 import { useSettings } from '../context/SettingsContext';
 import { useFaqs } from '../context/FaqContext';
 import { Product } from '../types';
-import { ArrowLeft, Save, Edit, Trash2, X, ImagePlus, Loader2, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Save, Edit, Trash2, X, ImagePlus, Loader2, ChevronDown, ChevronRight, ChevronLeft, HelpCircle } from 'lucide-react';
 
 interface FieldProps {
   label: string;
@@ -114,15 +114,18 @@ interface ImageSlotProps {
   isSaving: boolean;
   onImageChange: (index: number, e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveImage: (index: number, e: React.MouseEvent) => void;
+  onView?: (index: number) => void;
 }
 
-const ImageSlot = ({ index, label, existingUrl, previewUrl, isEditing, isSaving, onImageChange, onRemoveImage }: ImageSlotProps) => {
+const ImageSlot = ({ index, label, existingUrl, previewUrl, isEditing, isSaving, onImageChange, onRemoveImage, onView }: ImageSlotProps) => {
   const displayUrl = previewUrl || (existingUrl && existingUrl !== '' ? existingUrl : null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
     if (isEditing && fileInputRef.current) {
       fileInputRef.current.click();
+    } else if (!isEditing && displayUrl && onView) {
+      onView(index);
     }
   };
 
@@ -139,7 +142,7 @@ const ImageSlot = ({ index, label, existingUrl, previewUrl, isEditing, isSaving,
       {displayUrl ? (
         <div 
           onClick={handleClick}
-          className={`relative w-full h-full group rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center ${isEditing ? 'cursor-pointer' : ''}`}
+          className={`relative w-full h-full group rounded-xl overflow-hidden border border-slate-200 bg-slate-100 flex items-center justify-center ${isEditing ? 'cursor-pointer' : 'cursor-pointer hover:opacity-90 transition-opacity'}`}
         >
            <img src={displayUrl} alt={label} className="w-full h-full object-cover" />
            {isEditing && (
@@ -167,6 +170,70 @@ const ImageSlot = ({ index, label, existingUrl, previewUrl, isEditing, isSaving,
   );
 };
 
+const Lightbox = ({ 
+  images, 
+  initialIndex, 
+  onClose 
+}: { 
+  images: (string | null)[], 
+  initialIndex: number, 
+  onClose: () => void 
+}) => {
+  const validImages = images.filter((img): img is string => img !== null && img !== '');
+  if (validImages.length === 0) return null;
+  const actualInitial = validImages.indexOf(images[initialIndex] as string);
+  const [activeIndex, setActiveIndex] = useState(actualInitial >= 0 ? actualInitial : 0);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col bg-black/95 p-4 sm:p-8" onClick={onClose}>
+      <button 
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors z-[101]"
+      >
+        <X className="w-6 h-6" />
+      </button>
+
+      <div className="flex-1 flex flex-col items-center justify-center max-w-5xl mx-auto w-full min-h-0" onClick={e => e.stopPropagation()}>
+        <div className="relative w-full flex-1 min-h-0 flex items-center justify-center mb-6">
+           {validImages.length > 1 && (
+             <>
+               <button 
+                 onClick={() => setActiveIndex(prev => prev === 0 ? validImages.length - 1 : prev - 1)}
+                 className="absolute left-2 sm:left-4 p-2 sm:p-3 bg-black/50 text-white hover:bg-black/70 rounded-full transition-colors z-10"
+               >
+                 <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
+               </button>
+               <button 
+                 onClick={() => setActiveIndex(prev => prev === validImages.length - 1 ? 0 : prev + 1)}
+                 className="absolute right-2 sm:right-4 p-2 sm:p-3 bg-black/50 text-white hover:bg-black/70 rounded-full transition-colors z-10"
+               >
+                 <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
+               </button>
+             </>
+           )}
+           <img src={validImages[activeIndex]} alt="Preview" className="max-w-full max-h-full object-contain" />
+        </div>
+
+        {validImages.length > 1 && (
+          <div className="flex gap-3 overflow-x-auto pb-4 justify-center w-full px-4">
+            {validImages.map((img, idx) => (
+              <button 
+                key={idx}
+                onClick={() => setActiveIndex(idx)}
+                className={`relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
+                  activeIndex === idx ? 'border-white opacity-100 scale-105' : 'border-transparent opacity-50 hover:opacity-100'
+                }`}
+              >
+                <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export function EditProduct({ isNew = false }: { isNew?: boolean }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -182,6 +249,7 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
   const [removedImages, setRemovedImages] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const matchedFaqs = faqs.filter(f => {
     if (!product) return false;
@@ -244,7 +312,6 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
   const validateForm = () => {
     if (!product.name?.trim()) return "Product Name wajib diisi.";
     if (product.price === undefined || product.price < 0) return "Harga tidak boleh negatif.";
-    if (product.weight && !isNaN(Number(product.weight)) && Number(product.weight) < 0) return "Berat tidak boleh negatif.";
     
     return null;
   };
@@ -423,16 +490,16 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
           {/* Gallery (Max 4 slots) */}
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-3 aspect-square">
-              <ImageSlot index={0} label="Main Photo (Photo 1)" existingUrl={product?.images?.[0]} previewUrl={previewUrls[0]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} />
+              <ImageSlot index={0} label="Main Photo (Photo 1)" existingUrl={product?.images?.[0]} previewUrl={previewUrls[0]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} onView={setLightboxIndex} />
             </div>
             <div className="col-span-1 aspect-square">
-              <ImageSlot index={1} label="Photo 2" existingUrl={product?.images?.[1]} previewUrl={previewUrls[1]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} />
+              <ImageSlot index={1} label="Photo 2" existingUrl={product?.images?.[1]} previewUrl={previewUrls[1]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} onView={setLightboxIndex} />
             </div>
             <div className="col-span-1 aspect-square">
-              <ImageSlot index={2} label="Photo 3" existingUrl={product?.images?.[2]} previewUrl={previewUrls[2]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} />
+              <ImageSlot index={2} label="Photo 3" existingUrl={product?.images?.[2]} previewUrl={previewUrls[2]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} onView={setLightboxIndex} />
             </div>
             <div className="col-span-1 aspect-square">
-              <ImageSlot index={3} label="Photo 4" existingUrl={product?.images?.[3]} previewUrl={previewUrls[3]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} />
+              <ImageSlot index={3} label="Photo 4" existingUrl={product?.images?.[3]} previewUrl={previewUrls[3]} isEditing={isEditing} isSaving={isSaving} onImageChange={handleImageChange} onRemoveImage={handleRemoveImage} onView={setLightboxIndex} />
             </div>
           </div>
 
@@ -541,11 +608,9 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
-              <Field label="Specifications" value={product.specifications} field="specifications" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
-              <Field label="Material" value={product.material} field="material" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
-              <Field label="Size / Dimensions" value={product.size} field="size" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
-              <Field label="Weight" value={product.weight} field="weight" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
+            <div className="space-y-4 pt-3 border-t border-slate-100">
+              <TextAreaField label="Specifications" value={product.specifications} field="specifications" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
+              <TextAreaField label="Proses Logo" value={product.material} field="material" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
             </div>
             
             <TextAreaField label="Production Info" value={product.productionInfo} field="productionInfo" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
@@ -553,8 +618,6 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
 
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
             <h2 className="text-[13px] font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">Internal & Management</h2>
-            <TextAreaField label="Internal Notes" value={product.internalNotes} field="internalNotes" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
-            
             {/* Categories / Tags Checklist */}
             <div className="pt-1">
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Product Tags & Classification</label>
@@ -601,10 +664,20 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
                 })}
               </div>
             </div>
+
+            <TextAreaField label="Internal Notes" value={product.internalNotes} field="internalNotes" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
           </div>
 
         </div>
       </div>
+
+      {lightboxIndex !== null && (
+        <Lightbox 
+          images={[0,1,2,3].map(i => previewUrls[i] || (product?.images?.[i]) || null)} 
+          initialIndex={lightboxIndex} 
+          onClose={() => setLightboxIndex(null)} 
+        />
+      )}
     </div>
   );
 }
