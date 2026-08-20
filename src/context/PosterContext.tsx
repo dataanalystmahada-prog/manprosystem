@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Poster, RecommendationPeriod, Recommendation } from '../types';
-import { useProducts } from './ProductContext';
 
 interface PosterContextType {
   posters: Poster[];
@@ -30,7 +29,6 @@ const PosterContext = createContext<PosterContextType | undefined>(undefined);
 const STORAGE_KEY = 'manpro_posters_data';
 
 export function PosterProvider({ children }: { children: ReactNode }) {
-  const { products } = useProducts();
   const [posters, setPosters] = useState<Poster[]>([]);
   const [periods, setPeriods] = useState<RecommendationPeriod[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
@@ -63,20 +61,30 @@ export function PosterProvider({ children }: { children: ReactNode }) {
             status: 'Aktif'
           };
           
-          const initialPosters: Poster[] = products.slice(0, 5).map((p, i) => ({
-            id: `poster-${i}`,
-            poster_name: `Poster ${p.name}`,
-            product_id: p.id,
-            product_name: p.name,
-            category: p.categoryId,
-            image_url: p.thumbnail || p.images?.[0] || '',
-            description: `Poster promosi untuk ${p.name}`,
-            status: 'Aktif',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          }));
+          const initialPosters: Poster[] = [
+            {
+              id: 'poster-1',
+              poster_name: 'Poster Silver Fold Auto',
+              category: 'Payung',
+              image_url: 'https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&q=80&w=800',
+              description: 'Poster promosi untuk Payung Silver Fold Auto',
+              status: 'Aktif',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            {
+              id: 'poster-2',
+              poster_name: 'Poster Silver Fold',
+              category: 'Payung',
+              image_url: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&q=80&w=800',
+              description: 'Poster promosi untuk Payung Silver Fold',
+              status: 'Aktif',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }
+          ];
 
-          const initialRecommendations: Recommendation[] = initialPosters.slice(0, 3).map((p, i) => ({
+          const initialRecommendations: Recommendation[] = initialPosters.slice(0, 2).map((p, i) => ({
             id: `rec-${i}`,
             period_id: 'p1',
             poster_id: p.id,
@@ -97,10 +105,10 @@ export function PosterProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    if (products.length > 0 && isLoading) {
+    if (isLoading) {
       loadData();
     }
-  }, [products, isLoading]);
+  }, [isLoading]);
 
   // Persist data when it changes
   useEffect(() => {

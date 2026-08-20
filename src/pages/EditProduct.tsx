@@ -19,7 +19,7 @@ interface FieldProps {
 
 const Field = ({ label, value, field, type = 'text', prefix, isEditing, isSaving, onChange }: FieldProps) => (
   <div>
-    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
+    <label className="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/60">{label}</label>
     {isEditing ? (
       <div className="relative">
         {prefix && <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-500 text-[13px] font-medium">{prefix}</div>}
@@ -50,7 +50,7 @@ interface TextAreaFieldProps {
 
 const TextAreaField = ({ label, value, field, isEditing, isSaving, onChange }: TextAreaFieldProps) => (
   <div>
-    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
+    <label className="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/60">{label}</label>
     {isEditing ? (
       <textarea
         value={value || ''}
@@ -79,7 +79,7 @@ interface SelectFieldProps {
 
 const SelectField = ({ label, value, field, options, isEditing, isSaving, onChange }: SelectFieldProps) => (
   <div>
-    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{label}</label>
+    <label className="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/60">{label}</label>
     {isEditing ? (
       <div className="relative">
         <select
@@ -577,7 +577,7 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
               <Field label="Minimal Order" value={product.minimalOrder} field="minimalOrder" type="number" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
               <Field label="Price Sample" value={product.priceSample} field="priceSample" type="number" prefix="Rp" isEditing={isEditing} isSaving={isSaving} onChange={handleFieldChange} />
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
+                <label className="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1.5 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/60">Status</label>
                 {isEditing ? (
                   <div className="relative">
                     <select
@@ -620,7 +620,7 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
             <h2 className="text-[13px] font-bold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">Internal & Management</h2>
             {/* Categories / Tags Checklist */}
             <div className="pt-1">
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Product Tags & Classification</label>
+              <label className="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200/60">Product Tags & Classification</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {categories.map(cat => {
                   const tag = cat.name;

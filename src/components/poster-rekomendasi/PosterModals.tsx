@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { X, AlertTriangle, Image as ImageIcon } from 'lucide-react';
 import { Poster } from '../../types';
 import { cn } from '../../lib/utils';
-import { useProducts } from '../../context/ProductContext';
 
 export function PosterFormModal({ 
   isOpen, onClose, poster, onSave 
