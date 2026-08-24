@@ -26,7 +26,7 @@ interface PosterContextType {
 
 const PosterContext = createContext<PosterContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'manpro_posters_data';
+const STORAGE_KEY = 'manpro_posters_data_v2';
 
 export function PosterProvider({ children }: { children: ReactNode }) {
   const [posters, setPosters] = useState<Poster[]>([]);
@@ -61,37 +61,9 @@ export function PosterProvider({ children }: { children: ReactNode }) {
             status: 'Aktif'
           };
           
-          const initialPosters: Poster[] = [
-            {
-              id: 'poster-1',
-              poster_name: 'Poster Silver Fold Auto',
-              category: 'Payung',
-              image_url: 'https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&q=80&w=800',
-              description: 'Poster promosi untuk Payung Silver Fold Auto',
-              status: 'Aktif',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            {
-              id: 'poster-2',
-              poster_name: 'Poster Silver Fold',
-              category: 'Payung',
-              image_url: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&q=80&w=800',
-              description: 'Poster promosi untuk Payung Silver Fold',
-              status: 'Aktif',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            }
-          ];
+          const initialPosters: Poster[] = [];
 
-          const initialRecommendations: Recommendation[] = initialPosters.slice(0, 2).map((p, i) => ({
-            id: `rec-${i}`,
-            period_id: 'p1',
-            poster_id: p.id,
-            ranking: i + 1,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          }));
+          const initialRecommendations: Recommendation[] = [];
 
           setPeriods([initialPeriod]);
           setPosters(initialPosters);
