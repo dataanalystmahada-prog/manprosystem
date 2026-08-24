@@ -33,7 +33,7 @@ const Field = ({ label, value, field, type = 'text', prefix, isEditing, isSaving
       </div>
     ) : (
       <div className="text-[13px] font-semibold text-slate-900 py-1 min-h-[32px] flex items-center">
-        {value ? `${prefix ? prefix + ' ' : ''}${value}` : <span className="text-slate-400 font-normal italic">Not specified</span>}
+        {value !== undefined && value !== null && value !== '' ? `${prefix ? prefix + ' ' : ''}${value}` : <span className="text-slate-400 font-normal italic">Not specified</span>}
       </div>
     )}
   </div>
@@ -61,7 +61,7 @@ const TextAreaField = ({ label, value, field, isEditing, isSaving, onChange }: T
       />
     ) : (
       <div className="text-[13px] font-medium text-slate-700 py-1 whitespace-pre-wrap min-h-[32px]">
-        {value || <span className="text-slate-400 font-normal italic">Not specified</span>}
+        {value !== undefined && value !== null && value !== '' ? value : <span className="text-slate-400 font-normal italic">Not specified</span>}
       </div>
     )}
   </div>
@@ -99,7 +99,7 @@ const SelectField = ({ label, value, field, options, isEditing, isSaving, onChan
       </div>
     ) : (
       <div className="text-[13px] font-medium text-slate-700 py-1 min-h-[32px] flex items-center">
-        {value || <span className="text-slate-400 font-normal italic">Not specified</span>}
+        {value !== undefined && value !== null && value !== '' ? value : <span className="text-slate-400 font-normal italic">Not specified</span>}
       </div>
     )}
   </div>
@@ -265,7 +265,7 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
         price: 0,
         priceSample: 0,
         minimalOrder: 0,
-        status: 'Draft',
+        status: 'Active',
         description: '',
         produk: '',
         subProduk: '',
@@ -581,7 +581,7 @@ export function EditProduct({ isNew = false }: { isNew?: boolean }) {
                 {isEditing ? (
                   <div className="relative">
                     <select
-                      value={product.status || 'Draft'}
+                      value={product.status || 'Active'}
                       onChange={(e) => setProduct(prev => prev ? { ...prev, status: e.target.value as any } : null)}
                       className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-[13px] text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-colors appearance-none pr-8"
                       disabled={isSaving}

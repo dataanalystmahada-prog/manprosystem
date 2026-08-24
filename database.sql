@@ -34,6 +34,7 @@ CREATE TABLE products (
   color TEXT,
   rincian_penawaran TEXT,
   price NUMERIC NOT NULL DEFAULT 0,
+  price_sample NUMERIC DEFAULT 0,
   stock INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'Draft',
   description TEXT,
