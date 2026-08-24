@@ -138,7 +138,7 @@ export function Products() {
                   </div>
                   <div className="px-3 pb-3 pt-1.5 flex flex-col flex-1">
                     <h3 className="text-[13px] font-bold text-slate-900 leading-snug line-clamp-2">{product.name}</h3>
-                    <p className="text-[10px] text-slate-500 mt-0.5 font-medium line-clamp-1">{product.tags?.join(', ') || 'Uncategorized'}</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5 font-medium line-clamp-1">Rp {(product.price || 0).toLocaleString('id-ID')} = 100 pc</p>
                   </div>
                 </div>
               ))}
