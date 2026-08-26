@@ -23,15 +23,7 @@ export function Products() {
     if (type === 'discontinue' && !upperTags.includes('DISCONTINUE')) return false;
     
     // 2. Active Tab Filter
-    if (activeFilter) {
-      if (activeFilter === 'UNDER 50K') {
-        if ((p.price || 0) >= 50000) return false;
-      } else if (activeFilter === 'UNDER 100K') {
-        if ((p.price || 0) >= 100000) return false;
-      } else if (!upperTags.includes(activeFilter.toUpperCase())) {
-        return false;
-      }
-    }
+    if (activeFilter && !upperTags.includes(activeFilter.toUpperCase())) return false;
 
     // 3. Search Term
     if (searchTerm) {
