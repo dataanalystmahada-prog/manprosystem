@@ -127,7 +127,12 @@ export function Products() {
                   onClick={() => navigate(`/product/edit/${product.id}`)}
                   className="bg-[#f8f9fa] rounded-xl overflow-hidden cursor-pointer hover:shadow-sm transition-all flex flex-col group border border-slate-100"
                 >
-                  <div className="aspect-square p-1.5">
+                  <div className="aspect-square p-1.5 relative">
+                    {product.tags?.some(t => t.toUpperCase() === 'DISCONTINUE') && (
+                      <div className="absolute top-2.5 right-2.5 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md z-10 shadow-sm">
+                        DISCONTINUE
+                      </div>
+                    )}
                     <div className="w-full h-full bg-[#e9ecef] rounded-lg overflow-hidden flex items-center justify-center">
                       {product.thumbnail ? (
                         <img src={product.thumbnail} alt={product.name} className="w-full h-full object-cover mix-blend-multiply" />

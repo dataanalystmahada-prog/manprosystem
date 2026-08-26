@@ -87,3 +87,14 @@ CREATE POLICY "Allow anon everything on categories" ON categories FOR ALL USING 
 CREATE POLICY "Allow anon everything on products" ON products FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow anon everything on product_categories" ON product_categories FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow anon everything on product_images" ON product_images FOR ALL USING (true) WITH CHECK (true);
+
+-- Settings Table for Global Master Data
+CREATE TABLE settings (
+  id TEXT PRIMARY KEY,
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow anon everything on settings" ON settings FOR ALL USING (true) WITH CHECK (true);
+
