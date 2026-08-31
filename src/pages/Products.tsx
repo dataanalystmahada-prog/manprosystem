@@ -3,14 +3,17 @@ import { Plus, Search, X, Loader2 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import { EmptyState } from '../components/common/EmptyState';
 import { useProducts } from '../context/ProductContext';
+import { useSettings } from '../context/SettingsContext';
 
 export function Products() {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
   const { products, isLoading, error } = useProducts();
+  const { settings } = useSettings();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [subProductFilter, setSubProductFilter] = useState<string>('');
   
   const topFilters = ['BEST SELLER', 'UNDER 50K', 'UNDER 100K', 'EXPRESS'];
 
@@ -25,7 +28,10 @@ export function Products() {
     // 2. Active Tab Filter
     if (activeFilter && !upperTags.includes(activeFilter.toUpperCase())) return false;
 
-    // 3. Search Term
+    // 3. Sub Product Filter
+    if (subProductFilter && p.subProduk !== subProductFilter) return false;
+
+    // 4. Search Term
     if (searchTerm) {
       const lowerSearch = searchTerm.toLowerCase();
       if (!p.name?.toLowerCase().includes(lowerSearch)) {
@@ -72,6 +78,19 @@ export function Products() {
         <h1 className="text-xl font-bold text-slate-900 tracking-tight">{getPageTitle()}</h1>
         
         <div className="flex items-center gap-2.5">
+          {type === 'all' && (
+            <select
+              value={subProductFilter}
+              onChange={(e) => setSubProductFilter(e.target.value)}
+              className="block w-40 pl-3 pr-8 py-1.5 bg-slate-100 border-none rounded-md text-[13px] focus:ring-2 focus:ring-slate-300 outline-none text-slate-900"
+            >
+              <option value="">Semua Sub Produk</option>
+              {settings.subProducts.map(sub => (
+                <option key={sub} value={sub}>{sub}</option>
+              ))}
+            </select>
+          )}
+
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
               <Search className="h-3.5 w-3.5 text-slate-400" />

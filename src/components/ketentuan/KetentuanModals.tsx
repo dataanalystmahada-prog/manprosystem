@@ -7,10 +7,11 @@ import type { KetentuanPoster } from '../../types';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialData?: KetentuanPoster | null;
 }
 
-export function UploadPosterModal({ isOpen, onClose }: ModalProps) {
-  const { addPoster } = useKetentuan();
+export function UploadPosterModal({ isOpen, onClose, initialData }: ModalProps) {
+  const { addPoster, updatePoster } = useKetentuan();
   const { settings } = useSettings();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -20,6 +21,24 @@ export function UploadPosterModal({ isOpen, onClose }: ModalProps) {
   });
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
+
+  React.useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setFormData({
+          poster_name: initialData.poster_name || '',
+          product_name: initialData.product_name || '',
+          description: initialData.description || '',
+        });
+        setPreview(initialData.image_url || '');
+      } else {
+        setFormData({ poster_name: '', product_name: '', description: '' });
+        setPreview('');
+      }
+      setFile(null);
+      setIsSubmitting(false);
+    }
+  }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
@@ -34,11 +53,16 @@ export function UploadPosterModal({ isOpen, onClose }: ModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !formData.poster_name) return;
+    if (!initialData && !file) return;
+    if (!formData.poster_name) return;
 
     try {
       setIsSubmitting(true);
-      await addPoster(formData, file);
+      if (initialData) {
+        await updatePoster(initialData.id, formData, file || undefined);
+      } else {
+        await addPoster(formData, file!);
+      }
       onClose();
     } catch (error) {
       console.error('Failed to upload poster:', error);
@@ -55,7 +79,9 @@ export function UploadPosterModal({ isOpen, onClose }: ModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-slate-800 rounded-xl w-full max-w-md shadow-2xl border border-slate-700/50 flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
-          <h2 className="text-lg font-bold text-white">Upload Poster Ketentuan</h2>
+          <h2 className="text-lg font-bold text-white">
+            {initialData ? 'Edit Poster Ketentuan' : 'Upload Poster Ketentuan'}
+          </h2>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-700/50 transition-colors">
             <X className="w-5 h-5" />
           </button>
@@ -144,18 +170,18 @@ export function UploadPosterModal({ isOpen, onClose }: ModalProps) {
           <button
             type="submit"
             form="upload-form"
-            disabled={isSubmitting || !file || !formData.poster_name}
+            disabled={isSubmitting || (!initialData && !file) || !formData.poster_name}
             className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-emerald-900/20"
           >
             {isSubmitting ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                Mengupload...
+                Menyimpan...
               </>
             ) : (
               <>
                 <Upload className="w-4 h-4" />
-                Upload Poster
+                {initialData ? 'Simpan Perubahan' : 'Upload Poster'}
               </>
             )}
           </button>
@@ -182,7 +208,7 @@ export function ViewPosterModal({ isOpen, onClose, poster }: ViewPosterModalProp
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={onClose}>
       <div 
-        className="relative max-w-2xl w-full bg-slate-900 rounded-xl overflow-hidden shadow-2xl flex flex-col"
+        className="relative max-w-5xl w-full bg-slate-900 rounded-xl overflow-hidden shadow-2xl flex flex-col md:flex-row"
         onClick={e => e.stopPropagation()}
       >
         <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
@@ -219,8 +245,7 @@ export function ViewPosterModal({ isOpen, onClose, poster }: ViewPosterModalProp
             <X className="w-5 h-5" />
           </button>
         </div>
-        
-        <div className="w-full h-[70vh] flex items-center justify-center bg-black overflow-hidden relative">
+        <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] flex items-center justify-center bg-black overflow-hidden relative border-b md:border-b-0 md:border-r border-slate-800">
           <div className="absolute inset-0 overflow-auto flex items-center justify-center">
             <img 
               src={poster.image_url} 
@@ -231,7 +256,7 @@ export function ViewPosterModal({ isOpen, onClose, poster }: ViewPosterModalProp
           </div>
         </div>
         
-        <div className="p-5 border-t border-slate-800">
+        <div className="w-full md:w-1/3 p-6 flex flex-col bg-slate-900">
           <h3 className="text-xl font-bold text-white mb-1">{poster.poster_name}</h3>
           {poster.product_name && (
             <span className="inline-block px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded mb-3">

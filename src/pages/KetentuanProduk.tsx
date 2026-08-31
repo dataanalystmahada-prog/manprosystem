@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, FileText, Image as ImageIcon } from 'lucide-react';
+import { Plus, Trash2, FileText, Image as ImageIcon, Pencil } from 'lucide-react';
 import { useKetentuan } from '../context/KetentuanContext';
 import { useSettings } from '../context/SettingsContext';
 import type { KetentuanPoster } from '../types';
@@ -12,6 +12,7 @@ export function KetentuanProduk() {
   const { settings } = useSettings();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedPoster, setSelectedPoster] = useState<KetentuanPoster | null>(null);
+  const [editingPoster, setEditingPoster] = useState<KetentuanPoster | null>(null);
   const [selectedFilter, setSelectedFilter] = useState<string>('');
 
   const filteredPosters = selectedFilter 
@@ -50,7 +51,7 @@ export function KetentuanProduk() {
           </select>
 
           <button
-            onClick={() => setIsUploadOpen(true)}
+            onClick={() => { setEditingPoster(null); setIsUploadOpen(true); }}
             className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
@@ -71,7 +72,7 @@ export function KetentuanProduk() {
             {selectedFilter ? `Tidak ada poster untuk ${selectedFilter}.` : 'Mulai dengan mengupload poster ketentuan produk baru.'}
           </p>
           <button
-            onClick={() => setIsUploadOpen(true)}
+            onClick={() => { setEditingPoster(null); setIsUploadOpen(true); }}
             className="mt-6 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-300 shadow-sm"
           >
             Upload Poster
@@ -93,12 +94,20 @@ export function KetentuanProduk() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
                 
-                <button
-                  onClick={(e) => handleDelete(e, poster.id)}
-                  className="absolute top-2 right-2 p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0 backdrop-blur-sm"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="absolute top-2 right-2 flex flex-col gap-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setEditingPoster(poster); setIsUploadOpen(true); }}
+                    className="p-1.5 bg-blue-500/80 hover:bg-blue-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0 backdrop-blur-sm"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={(e) => handleDelete(e, poster.id)}
+                    className="p-1.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0 backdrop-blur-sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
 
                 <div className="absolute bottom-0 inset-x-0 p-3">
                   <h3 className="text-sm font-semibold text-white line-clamp-1 group-hover:text-emerald-400 transition-colors">
@@ -121,7 +130,8 @@ export function KetentuanProduk() {
 
       <UploadPosterModal
         isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
+        onClose={() => { setIsUploadOpen(false); setEditingPoster(null); }}
+        initialData={editingPoster}
       />
 
       <ViewPosterModal
