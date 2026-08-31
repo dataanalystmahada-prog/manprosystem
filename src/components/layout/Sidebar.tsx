@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router';
-import { LayoutGrid, BarChart2, RefreshCcw, Ban, CheckCircle, Download, Megaphone, Settings, HelpCircle } from 'lucide-react';
+import { LayoutGrid, BarChart2, RefreshCcw, Ban, CheckCircle, Download, Megaphone, Settings, HelpCircle, FileText } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const mainNavigation = [
   { name: 'ALL Produk', href: '/products/all', icon: LayoutGrid },
   { name: 'New Produk !!!', href: '/products/new', icon: BarChart2 },
   { name: 'Discontinue', href: '/products/discontinue', icon: Ban },
+  { name: 'Ketentuan Produk', href: '/products/ketentuan', icon: FileText },
 ];
 
 const secondaryNavigation = [

@@ -48,6 +48,15 @@ export interface Poster {
   updated_at: string;
 }
 
+export interface KetentuanPoster {
+  id: string;
+  poster_name: string;
+  product_name?: string;
+  image_url: string;
+  description?: string;
+  created_at: string;
+}
+
 export interface RecommendationPeriod {
   id: string;
   period_name: string; // e.g., "Agustus 2026"

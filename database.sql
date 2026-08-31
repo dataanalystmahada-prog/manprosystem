@@ -65,6 +65,16 @@ CREATE TABLE product_images (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Ketentuan Posters
+CREATE TABLE ketentuan_posters (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  poster_name TEXT NOT NULL,
+  product_name TEXT,
+  image_url TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Setup Storage Bucket for Product Images
 -- This requires the Supabase "storage" schema to be available.
 INSERT INTO storage.buckets (id, name, public) 
@@ -87,6 +97,9 @@ CREATE POLICY "Allow anon everything on categories" ON categories FOR ALL USING 
 CREATE POLICY "Allow anon everything on products" ON products FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow anon everything on product_categories" ON product_categories FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow anon everything on product_images" ON product_images FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE ketentuan_posters ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow anon everything on ketentuan_posters" ON ketentuan_posters FOR ALL USING (true) WITH CHECK (true);
 
 -- Settings Table for Global Master Data
 CREATE TABLE settings (

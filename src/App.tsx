@@ -11,7 +11,9 @@ import { InData } from './pages/InData';
 import { PosterRekomendasi } from './pages/PosterRekomendasi';
 import { KanbanRnd } from './pages/KanbanRnd';
 import { Settings } from './pages/Settings';
+import { KetentuanProduk } from './pages/KetentuanProduk';
 import { ProductProvider } from './context/ProductContext';
+import { KetentuanProvider } from './context/KetentuanContext';
 import { PosterProvider } from './context/PosterContext';
 import { RndProvider } from './context/RndContext';
 import { SettingsProvider } from './context/SettingsContext';
@@ -24,13 +26,15 @@ export default function App() {
       <FaqProvider>
         <ProductProvider>
           <PosterProvider>
-            <RndProvider>
-              <BrowserRouter>
+            <KetentuanProvider>
+              <RndProvider>
+                <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Layout />}>
                     <Route index element={<Navigate to="/products/all" replace />} />
                     <Route path="products/indata" element={<InData />} />
                     <Route path="products/poster-rekomendasi" element={<PosterRekomendasi />} />
+                    <Route path="products/ketentuan" element={<KetentuanProduk />} />
                     <Route path="products/:type" element={<Products />} />
                     <Route path="product/new" element={<EditProduct isNew />} />
                     <Route path="product/edit/:id" element={<EditProduct />} />
@@ -39,8 +43,9 @@ export default function App() {
                     <Route path="settings" element={<Settings />} />
                   </Route>
                 </Routes>
-              </BrowserRouter>
-            </RndProvider>
+                </BrowserRouter>
+              </RndProvider>
+            </KetentuanProvider>
           </PosterProvider>
         </ProductProvider>
       </FaqProvider>
