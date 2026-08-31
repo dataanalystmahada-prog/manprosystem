@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, FileText, Image as ImageIcon } from 'lucide-react';
 import { useKetentuan } from '../context/KetentuanContext';
+import { useSettings } from '../context/SettingsContext';
 import type { KetentuanPoster } from '../types';
 import { UploadPosterModal, ViewPosterModal } from '../components/ketentuan/KetentuanModals';
 import { format } from 'date-fns';
@@ -8,8 +9,14 @@ import { id } from 'date-fns/locale';
 
 export function KetentuanProduk() {
   const { posters, isLoading, deletePoster } = useKetentuan();
+  const { settings } = useSettings();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedPoster, setSelectedPoster] = useState<KetentuanPoster | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState<string>('');
+
+  const filteredPosters = selectedFilter 
+    ? posters.filter(p => p.product_name === selectedFilter)
+    : posters;
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -19,52 +26,66 @@ export function KetentuanProduk() {
   };
 
   return (
-    <div className="p-6 h-full flex flex-col bg-[#0f172a]">
+    <div className="p-6 h-full flex flex-col bg-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <FileText className="w-6 h-6 text-emerald-400" />
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <FileText className="w-6 h-6 text-emerald-600" />
             Ketentuan Produk
           </h1>
-          <p className="text-slate-400 mt-1 text-sm">
+          <p className="text-slate-500 mt-1 text-sm">
             Kelola dan lihat poster ketentuan untuk produk-produk.
           </p>
         </div>
-        
-        <button
-          onClick={() => setIsUploadOpen(true)}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-lg shadow-emerald-900/20"
-        >
-          <Plus className="w-4 h-4" />
-          Upload Poster
-        </button>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <select
+            value={selectedFilter}
+            onChange={(e) => setSelectedFilter(e.target.value)}
+            className="bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 flex-1 sm:flex-none shadow-sm"
+          >
+            <option value="">Semua Sub Produk</option>
+            {settings.subProducts.map(sub => (
+              <option key={sub} value={sub}>{sub}</option>
+            ))}
+          </select>
+
+          <button
+            onClick={() => setIsUploadOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            Upload Poster
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
         <div className="flex-1 flex justify-center items-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
         </div>
-      ) : posters.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-900/50 rounded-2xl border border-slate-800/50 p-8">
-          <ImageIcon className="w-16 h-16 mb-4 text-slate-500 opacity-50" />
-          <h3 className="text-lg font-medium text-slate-300 mb-1">Belum ada poster</h3>
-          <p className="text-sm">Mulai dengan mengupload poster ketentuan produk baru.</p>
+      ) : filteredPosters.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-slate-500 bg-slate-50 rounded-2xl border border-slate-200 p-8">
+          <ImageIcon className="w-16 h-16 mb-4 text-slate-300" />
+          <h3 className="text-lg font-medium text-slate-700 mb-1">Belum ada poster</h3>
+          <p className="text-sm text-center">
+            {selectedFilter ? `Tidak ada poster untuk ${selectedFilter}.` : 'Mulai dengan mengupload poster ketentuan produk baru.'}
+          </p>
           <button
             onClick={() => setIsUploadOpen(true)}
-            className="mt-6 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-700"
+            className="mt-6 bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-300 shadow-sm"
           >
-            Upload Poster Pertama
+            Upload Poster
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {posters.map((poster) => (
+          {filteredPosters.map((poster) => (
             <div
               key={poster.id}
               onClick={() => setSelectedPoster(poster)}
-              className="group relative bg-slate-800 rounded-xl overflow-hidden border border-slate-700/50 cursor-pointer hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-900/10 transition-all duration-300"
+              className="group relative bg-white rounded-xl overflow-hidden border border-slate-200 cursor-pointer hover:border-emerald-500/50 hover:shadow-lg transition-all duration-300"
             >
-              <div className="aspect-[3/4] relative overflow-hidden bg-slate-900">
+              <div className="aspect-[3/4] relative overflow-hidden bg-slate-100">
                 <img
                   src={poster.image_url}
                   alt={poster.poster_name}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { X, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import { useKetentuan } from '../../context/KetentuanContext';
-import { useProducts } from '../../context/ProductContext';
+import { useSettings } from '../../context/SettingsContext';
 import type { KetentuanPoster } from '../../types';
 
 interface ModalProps {
@@ -11,7 +11,7 @@ interface ModalProps {
 
 export function UploadPosterModal({ isOpen, onClose }: ModalProps) {
   const { addPoster } = useKetentuan();
-  const { products } = useProducts();
+  const { settings } = useSettings();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     poster_name: '',
@@ -48,8 +48,8 @@ export function UploadPosterModal({ isOpen, onClose }: ModalProps) {
     }
   };
 
-  // Get unique product names from products master data
-  const uniqueProductNames = Array.from(new Set(products.map(p => p.name))).sort();
+  // Get sub products from settings
+  const uniqueProductNames = settings.subProducts;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -170,27 +170,65 @@ interface ViewPosterModalProps extends ModalProps {
 }
 
 export function ViewPosterModal({ isOpen, onClose, poster }: ViewPosterModalProps) {
+  const [scale, setScale] = useState(1);
+
+  // Reset scale when modal opens/closes or poster changes
+  React.useEffect(() => {
+    setScale(1);
+  }, [isOpen, poster]);
+
   if (!isOpen || !poster) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={onClose}>
       <div 
-        className="relative max-w-lg w-full bg-slate-900 rounded-xl overflow-hidden shadow-2xl flex flex-col"
+        className="relative max-w-2xl w-full bg-slate-900 rounded-xl overflow-hidden shadow-2xl flex flex-col"
         onClick={e => e.stopPropagation()}
       >
-        <button 
-          onClick={onClose} 
-          className="absolute top-3 right-3 p-2 bg-black/50 text-white hover:bg-black/70 rounded-full transition-colors z-10"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
+          <div className="flex bg-black/50 rounded-lg p-1 mr-2">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setScale(prev => Math.max(0.5, prev - 0.25)); }}
+              className="p-1.5 text-white hover:bg-black/40 rounded transition-colors"
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <div className="px-2 py-1.5 text-xs font-medium text-white flex items-center min-w-[3rem] justify-center">
+              {Math.round(scale * 100)}%
+            </div>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setScale(prev => Math.min(3, prev + 0.25)); }}
+              className="p-1.5 text-white hover:bg-black/40 rounded transition-colors"
+              title="Zoom In"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setScale(1); }}
+              className="p-1.5 text-white hover:bg-black/40 rounded transition-colors ml-1 border-l border-white/20"
+              title="Reset Zoom"
+            >
+              <Maximize className="w-4 h-4" />
+            </button>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="p-2 bg-black/50 text-white hover:bg-black/70 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
         
-        <div className="w-full flex justify-center bg-black">
-          <img 
-            src={poster.image_url} 
-            alt={poster.poster_name} 
-            className="max-h-[70vh] object-contain"
-          />
+        <div className="w-full h-[70vh] flex items-center justify-center bg-black overflow-hidden relative">
+          <div className="absolute inset-0 overflow-auto flex items-center justify-center">
+            <img 
+              src={poster.image_url} 
+              alt={poster.poster_name} 
+              className="transition-transform duration-200 ease-in-out origin-center"
+              style={{ transform: `scale(${scale})`, maxHeight: scale === 1 ? '100%' : 'none' }}
+            />
+          </div>
         </div>
         
         <div className="p-5 border-t border-slate-800">
