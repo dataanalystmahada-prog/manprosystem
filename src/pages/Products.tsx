@@ -25,11 +25,13 @@ export function Products() {
     if (type === 'rnd' && !upperTags.includes('R&D')) return false;
     if (type === 'discontinue' && !upperTags.includes('DISCONTINUE')) return false;
     
-    // 2. Active Tab Filter
-    if (activeFilter && !upperTags.includes(activeFilter.toUpperCase())) return false;
+    if (type === 'all') {
+      // 2. Active Tab Filter
+      if (activeFilter && !upperTags.includes(activeFilter.toUpperCase())) return false;
 
-    // 3. Sub Product Filter
-    if (subProductFilter && p.subProduk !== subProductFilter) return false;
+      // 3. Sub Product Filter
+      if (subProductFilter && p.subProduk !== subProductFilter) return false;
+    }
 
     // 4. Search Term
     if (searchTerm) {
