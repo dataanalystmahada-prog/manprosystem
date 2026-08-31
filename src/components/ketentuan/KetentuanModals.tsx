@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { X, Upload, Image as ImageIcon } from 'lucide-react';
 import { useKetentuan } from '../../context/KetentuanContext';
-import { useProductContext } from '../../context/ProductContext';
-import { KetentuanPoster } from '../../types';
+import { useProducts } from '../../context/ProductContext';
+import type { KetentuanPoster } from '../../types';
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,7 +11,7 @@ interface ModalProps {
 
 export function UploadPosterModal({ isOpen, onClose }: ModalProps) {
   const { addPoster } = useKetentuan();
-  const { products } = useProductContext();
+  const { products } = useProducts();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     poster_name: '',

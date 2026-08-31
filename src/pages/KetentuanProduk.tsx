@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, FileText, Image as ImageIcon } from 'lucide-react';
 import { useKetentuan } from '../context/KetentuanContext';
-import { KetentuanPoster } from '../types';
+import type { KetentuanPoster } from '../types';
 import { UploadPosterModal, ViewPosterModal } from '../components/ketentuan/KetentuanModals';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
