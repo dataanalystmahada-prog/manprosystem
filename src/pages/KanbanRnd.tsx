@@ -290,7 +290,7 @@ export function KanbanRnd() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-48px)] bg-slate-50 font-sans -mx-8 -my-6 px-6 py-5 overflow-hidden">
+    <div className="flex flex-col min-h-[calc(100vh-48px)] bg-slate-50 font-sans -mx-8 -my-6 px-6 py-5">
       
       {/* Header Area */}
       <div className="flex flex-col gap-4 mb-5 flex-shrink-0">
@@ -299,15 +299,28 @@ export function KanbanRnd() {
             <h1 className="text-xl font-bold text-slate-900 mb-0.5 tracking-tight">Kanban RND</h1>
             <p className="text-[13px] text-slate-500">Monitor perkembangan produk dari vendor hingga launching.</p>
           </div>
-          <button 
-            onClick={() => {
-              setSelectedProduct(undefined);
-              setIsAddModalOpen(true);
-            }}
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors shadow-sm shadow-emerald-600/20"
-          >
-            <Plus className="w-4 h-4" /> Tambah Produk
-          </button>
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex gap-4 px-4 py-2 bg-white rounded-lg border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Normal
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium">
+                <span className="w-2 h-2 rounded-full bg-amber-500"></span> Warning
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium">
+                <span className="w-2 h-2 rounded-full bg-red-500"></span> Overdue
+              </div>
+            </div>
+            <button 
+              onClick={() => {
+                setSelectedProduct(undefined);
+                setIsAddModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors shadow-sm shadow-emerald-600/20"
+            >
+              <Plus className="w-4 h-4" /> Tambah Produk
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-3">
@@ -338,7 +351,7 @@ export function KanbanRnd() {
       </div>
 
       {/* Kanban Board Area */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden pb-4">
+      <div className="flex-1 overflow-x-auto pb-4">
         <DndContext 
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -346,7 +359,7 @@ export function KanbanRnd() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-4 h-full min-w-max pb-2">
+          <div className="flex gap-4 h-full min-w-max pb-2 items-start">
             {RND_STEPS.map((step, index) => {
               const columnProducts = productsByStep[step] || [];
               return (
@@ -380,19 +393,6 @@ export function KanbanRnd() {
         </DndContext>
       </div>
 
-      {/* Bottom Legend */}
-      <div className="flex gap-6 pt-3 border-t border-slate-200 mt-2 flex-shrink-0 bg-slate-50">
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-          <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Normal <span className="text-slate-400 ml-1">Deadline aman</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-          <span className="w-2 h-2 rounded-full bg-amber-500"></span> Warning <span className="text-slate-400 ml-1">Deadline semakin dekat</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-          <span className="w-2 h-2 rounded-full bg-red-500"></span> Overdue <span className="text-slate-400 ml-1">Deadline sudah lewat</span>
-        </div>
-      </div>
-
       <RndFormModal 
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)} 
@@ -423,7 +423,7 @@ export function KanbanColumn({ step, index, products, getStepNumberBadge, onProd
   return (
     <div 
       ref={setNodeRef}
-      className="flex flex-col w-[260px] max-w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm h-full"
+      className="flex flex-col w-[260px] max-w-[260px] flex-shrink-0 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm h-max"
     >
       <div className="flex items-center justify-between p-2.5 border-b border-slate-100 bg-slate-50/50">
         <div className="flex items-center gap-1.5">
@@ -435,8 +435,8 @@ export function KanbanColumn({ step, index, products, getStepNumberBadge, onProd
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-1.5 bg-slate-50/30">
-        <div className="flex flex-col gap-1.5 min-h-full">
+      <div className="p-1.5 bg-slate-50/30">
+        <div className="flex flex-col gap-1.5 min-h-[100px]">
           {products.length > 0 ? (
             <SortableContext items={products.map(p => p.id)} strategy={verticalListSortingStrategy}>
               {products.map(product => (
