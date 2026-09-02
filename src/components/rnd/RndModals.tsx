@@ -22,6 +22,18 @@ export function RndFormModal({ isOpen, onClose, product }: RndFormModalProps) {
     notes: product?.notes || '',
   });
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        product_name: product?.product_name || '',
+        pic: product?.pic || '',
+        deadline: product?.deadline ? product.deadline.split('T')[0] : '',
+        notes: product?.notes || '',
+      });
+      setActiveTab('detail');
+    }
+  }, [isOpen, product]);
+
   const [activeTab, setActiveTab] = useState<'detail' | 'history'>('detail');
 
   if (!isOpen) return null;
@@ -78,14 +90,20 @@ export function RndFormModal({ isOpen, onClose, product }: RndFormModalProps) {
             <form id="rnd-form" onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-[13px] font-medium text-slate-700 mb-1">Nama Produk</label>
-                <input 
-                  type="text" 
-                  required
-                  value={formData.product_name}
-                  onChange={e => setFormData({...formData, product_name: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
-                  placeholder="Contoh: Payung Fullprint"
-                />
+                {product ? (
+                  <div className="w-full bg-slate-100 border border-slate-200 rounded-md px-3 py-2 text-[13px] font-semibold text-slate-700">
+                    {product.product_name}
+                  </div>
+                ) : (
+                  <input 
+                    type="text" 
+                    required
+                    value={formData.product_name}
+                    onChange={e => setFormData({...formData, product_name: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-2 text-[13px] text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                    placeholder="Contoh: Payung Fullprint"
+                  />
+                )}
               </div>
 
               {product && (
