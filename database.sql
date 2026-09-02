@@ -111,3 +111,35 @@ CREATE TABLE settings (
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow anon everything on settings" ON settings FOR ALL USING (true) WITH CHECK (true);
 
+-- Kanban RND Products Table
+CREATE TABLE rnd_products (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_name TEXT NOT NULL,
+  pic TEXT NOT NULL,
+  current_step TEXT NOT NULL,
+  start_date TIMESTAMPTZ NOT NULL,
+  last_update TIMESTAMPTZ NOT NULL,
+  deadline TIMESTAMPTZ NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  is_completed BOOLEAN DEFAULT FALSE
+);
+
+ALTER TABLE rnd_products ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow anon everything on rnd_products" ON rnd_products FOR ALL USING (true) WITH CHECK (true);
+
+-- Kanban RND Histories Table
+CREATE TABLE rnd_histories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID REFERENCES rnd_products(id) ON DELETE CASCADE,
+  from_step TEXT NOT NULL,
+  to_step TEXT NOT NULL,
+  changed_by TEXT NOT NULL,
+  changed_at TIMESTAMPTZ NOT NULL
+);
+
+ALTER TABLE rnd_histories ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow anon everything on rnd_histories" ON rnd_histories FOR ALL USING (true) WITH CHECK (true);
+
+
