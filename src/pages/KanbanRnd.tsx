@@ -4,14 +4,14 @@ import { RndProduct, RndStep } from '../types';
 import { RndFormModal } from '../components/rnd/RndModals';
 import { 
   DndContext, closestCorners, KeyboardSensor, PointerSensor, 
-  useSensor, useSensors, DragOverlay, defaultDropAnimationSideEffects
+  useSensor, useSensors, DragOverlay, defaultDropAnimationSideEffects, useDroppable
 } from '@dnd-kit/core';
 import { 
   SortableContext, arrayMove, sortableKeyboardCoordinates, 
   verticalListSortingStrategy, useSortable 
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, Search, Filter, MoreVertical, AlertTriangle, AlertCircle, Clock, ChevronDown } from 'lucide-react';
+import { Plus, Search, Filter, MoreVertical, AlertTriangle, AlertCircle, Clock, ChevronDown, CheckCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { format, isAfter, isBefore, addDays, startOfDay } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -82,6 +82,12 @@ const ProductCard = React.forwardRef<HTMLDivElement, SortableProductCardProps & 
           </div>
         </div>
 
+        {product.notes && (
+          <div className="text-[11px] text-slate-600 bg-slate-100/80 p-1.5 rounded mb-2 italic line-clamp-2 border border-slate-200/60">
+            {product.notes}
+          </div>
+        )}
+
         <div>
           {statusType === 'normal' && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -142,9 +148,18 @@ const SortableProductCard = ({ product, onClick, onComplete }: SortableProductCa
   );
 };
 
+const pointerSensorOptions = { activationConstraint: { distance: 5 } };
+const keyboardSensorOptions = { coordinateGetter: sortableKeyboardCoordinates };
+
 export function KanbanRnd() {
-  const { products, moveProduct, completeProduct } = useRnd();
+  const { products: contextProducts, moveProduct, completeProduct } = useRnd();
+  const [products, setProducts] = useState<RndProduct[]>(contextProducts);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  React.useEffect(() => {
+    setProducts(contextProducts);
+  }, [contextProducts]);
+
   const [selectedPic, setSelectedPic] = useState('Semua PIC');
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -188,8 +203,8 @@ export function KanbanRnd() {
   }, [filteredProducts]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(PointerSensor, pointerSensorOptions),
+    useSensor(KeyboardSensor, keyboardSensorOptions)
   );
 
   const handleDragStart = (event: any) => {
@@ -209,12 +224,25 @@ export function KanbanRnd() {
     const isOverTask = over.data.current?.type === "Product";
     const isOverColumn = over.data.current?.type === "Column";
 
-    // Scenario 1: Dropping a Task over another Task
-    if (isActiveTask && isOverTask) {
-      // Just visually ordering, actual movement is handled in DragEnd if needed,
-      // but standard Kanban usually just moves to the column. 
-      // For simplicity, we won't reorder within the column if it's auto-sorted by deadline.
-      // But we can let them change columns.
+    if (!isActiveTask) return;
+
+    let targetStep = '';
+    if (isOverColumn) {
+      targetStep = over.data.current?.step;
+    } else if (isOverTask) {
+      targetStep = over.data.current?.product.current_step;
+    }
+
+    if (targetStep) {
+      setProducts(prev => {
+        const activeIndex = prev.findIndex(p => p.id === activeId);
+        if (activeIndex > -1 && prev[activeIndex].current_step !== targetStep) {
+          const newProducts = [...prev];
+          newProducts[activeIndex] = { ...newProducts[activeIndex], current_step: targetStep as RndStep };
+          return newProducts;
+        }
+        return prev;
+      });
     }
   };
 
@@ -224,25 +252,20 @@ export function KanbanRnd() {
     if (!over) return;
 
     const activeId = active.id as string;
-    const overId = over.id as string;
-
-    const activeData = active.data.current;
     const overData = over.data.current;
 
-    if (!activeData || !activeData.product) return;
-
-    const product = activeData.product as RndProduct;
-    let targetStep = product.current_step;
-
+    let targetStep = '';
     if (overData?.type === 'Column') {
       targetStep = overData.step as RndStep;
     } else if (overData?.type === 'Product') {
       targetStep = overData.product.current_step as RndStep;
     }
 
-    if (product.current_step !== targetStep) {
+    const originalProduct = contextProducts.find(p => p.id === activeId);
+    
+    if (originalProduct && targetStep && originalProduct.current_step !== targetStep) {
       // Mocking the user as "Admin" for now, ideally it comes from auth context
-      moveProduct(product.id, targetStep, "Admin");
+      moveProduct(originalProduct.id, targetStep as RndStep, "Admin");
     }
   };
 
@@ -388,8 +411,8 @@ interface KanbanColumnProps {
   onProductComplete?: (product: RndProduct) => void;
 }
 
-function KanbanColumn({ step, index, products, getStepNumberBadge, onProductClick, onProductComplete }: KanbanColumnProps) {
-  const { setNodeRef } = useSortable({
+export function KanbanColumn({ step, index, products, getStepNumberBadge, onProductClick, onProductComplete }: KanbanColumnProps) {
+  const { setNodeRef } = useDroppable({
     id: `column-${step}`,
     data: {
       type: 'Column',
