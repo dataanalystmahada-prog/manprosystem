@@ -16,6 +16,8 @@ export default function PreviewDeadstockPage() {
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState<any[]>([]);
   const [productFilter, setProductFilter] = useState('');
+  const [notesOptions, setNotesOptions] = useState<string[]>([]);
+  const [notesFilter, setNotesFilter] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fetchData = async () => {
@@ -69,12 +71,17 @@ export default function PreviewDeadstockPage() {
 
       // Extract unique products for the filter
       const uniqueProducts = new Map();
+      const uniqueNotes = new Set<string>();
       processedData.forEach(item => {
         if (item.product && !uniqueProducts.has(item.product_id)) {
           uniqueProducts.set(item.product_id, { id: item.product_id, name: item.product.product_name });
         }
+        if (item.notes) {
+          uniqueNotes.add(item.notes);
+        }
       });
       setProducts(Array.from(uniqueProducts.values()));
+      setNotesOptions(Array.from(uniqueNotes).sort());
 
     } catch (error: any) {
       console.error(error);
@@ -95,10 +102,11 @@ export default function PreviewDeadstockPage() {
         (item.transaction_number || '').toLowerCase().includes(search.toLowerCase()) 
         : true;
       const matchProduct = productFilter ? item.product_id === productFilter : true;
+      const matchNotes = notesFilter ? item.notes === notesFilter : true;
       
-      return matchSearch && matchProduct;
+      return matchSearch && matchProduct && matchNotes;
     });
-  }, [data, search, productFilter]);
+  }, [data, search, productFilter, notesFilter]);
 
   return (
     <div className="space-y-6">
@@ -130,6 +138,14 @@ export default function PreviewDeadstockPage() {
         >
           <option value="">Semua Produk</option>
           {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <select
+          className="w-full sm:w-48 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+          value={notesFilter}
+          onChange={(e) => setNotesFilter(e.target.value)}
+        >
+          <option value="">Semua Ket. Sales</option>
+          {notesOptions.map(note => <option key={note} value={note}>{note}</option>)}
         </select>
       </div>
 
@@ -171,11 +187,18 @@ export default function PreviewDeadstockPage() {
                     {item.product?.product_name || 'Unknown Product'}
                   </h3>
                   <p className="text-[10px] text-slate-500 font-mono mb-1">{item.transaction_number}</p>
-                  {item.deadstock_status && (
-                    <span className="inline-block text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded mb-2">
-                      {item.deadstock_status}
-                    </span>
-                  )}
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {item.deadstock_status && (
+                      <span className="inline-block text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded">
+                        {item.deadstock_status}
+                      </span>
+                    )}
+                    {item.notes && (
+                      <span className="inline-block text-[10px] px-1.5 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded">
+                        {item.notes}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-center border-t border-slate-100 pt-3 mt-2">
