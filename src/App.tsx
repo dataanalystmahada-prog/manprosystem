@@ -19,6 +19,10 @@ import { RndProvider } from './context/RndContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { FaqProvider } from './context/FaqContext';
 import { Faq } from './pages/Faq';
+import { Dashboard } from './pages/Dashboard';
+import { Categories } from './pages/Categories';
+import PreviewDeadstockPage from './pages/PreviewDeadstockPage';
+
 
 export default function App() {
   return (
@@ -32,7 +36,10 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<Layout />}>
                     <Route index element={<Navigate to="/products/all" replace />} />
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="categories" element={<Categories />} />
                     <Route path="products/indata" element={<InData />} />
+                    <Route path="preview-deadstock" element={<PreviewDeadstockPage />} />
                     <Route path="products/poster-rekomendasi" element={<PosterRekomendasi />} />
                     <Route path="products/ketentuan" element={<KetentuanProduk />} />
                     <Route path="products/:type" element={<Products />} />
