@@ -153,6 +153,7 @@ export default function PreviewDeadstockPage() {
                     src={item.photo_url} 
                     alt={item.product?.product_name || 'Deadstock'} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                    loading="lazy"
                     onClick={() => setSelectedImage(item.photo_url)}
                   />
                 ) : (
@@ -180,7 +181,7 @@ export default function PreviewDeadstockPage() {
                   <div className="flex justify-between items-center border-t border-slate-100 pt-3 mt-2">
                     <div className="text-xs text-slate-500 whitespace-nowrap">Harga Satuan</div>
                     <div className="text-sm font-bold text-indigo-600 whitespace-nowrap ml-2">
-                      Rp {(item.unit_cost || 0).toLocaleString('id-ID')}
+                      Rp {((item.unit_cost || 0) * 1.45).toLocaleString('id-ID')}
                     </div>
                   </div>
                 </div>
