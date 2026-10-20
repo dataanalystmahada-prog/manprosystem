@@ -33,10 +33,14 @@ export function Products() {
       if (subProductFilter && p.subProduk !== subProductFilter) return false;
     }
 
-    // 4. Search Term
-    if (searchTerm) {
-      const lowerSearch = searchTerm.toLowerCase();
-      if (!p.name?.toLowerCase().includes(lowerSearch)) {
+    // 4. Search Term (Nama, Produk, Sub Produk)
+    if (searchTerm.trim()) {
+      const lowerSearch = searchTerm.toLowerCase().trim();
+      const matchName = p.name?.toLowerCase().includes(lowerSearch);
+      const matchProduk = p.produk?.toLowerCase().includes(lowerSearch);
+      const matchSubProduk = p.subProduk?.toLowerCase().includes(lowerSearch);
+      
+      if (!matchName && !matchProduk && !matchSubProduk) {
         return false;
       }
     }
@@ -99,10 +103,10 @@ export function Products() {
             </div>
             <input
               type="text"
-              placeholder={type === 'new' ? 'Search' : 'Search by name or code...'}
+              placeholder={type === 'new' ? 'Search by name, product...' : 'Search by name, product, sub product...'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="block w-48 md:w-60 pl-8 pr-8 py-1.5 bg-slate-100 border-none rounded-md text-[13px] focus:ring-2 focus:ring-slate-300 outline-none text-slate-900 placeholder:text-slate-400"
+              className="block w-48 md:w-64 pl-8 pr-8 py-1.5 bg-slate-100 border-none rounded-md text-[13px] focus:ring-2 focus:ring-slate-300 outline-none text-slate-900 placeholder:text-slate-400"
             />
             {searchTerm && (
               <button 
