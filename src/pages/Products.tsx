@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { Plus, Search, X, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, X, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router';
 import { EmptyState } from '../components/common/EmptyState';
 import { useProducts } from '../context/ProductContext';
 import { useSettings } from '../context/SettingsContext';
+
+const ITEMS_PER_PAGE = 30; // 5 baris x 6 kolom pada tampilan desktop
 
 export function Products() {
   const { type } = useParams<{ type: string }>();
@@ -14,8 +16,14 @@ export function Products() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [subProductFilter, setSubProductFilter] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
   
   const topFilters = ['BEST SELLER', 'UNDER 50K', 'UNDER 100K', 'EXPRESS'];
+
+  // Reset ke halaman 1 setiap kali filter atau route berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [type, activeFilter, subProductFilter, searchTerm]);
 
   const filteredProducts = products.filter(p => {
     const upperTags = p.tags?.map(t => t.toUpperCase()) || [];
@@ -47,6 +55,34 @@ export function Products() {
 
     return true;
   });
+
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const validCurrentPage = totalPages > 0 ? Math.min(Math.max(1, currentPage), totalPages) : 1;
+  const startIndex = (validCurrentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages || page === validCurrentPage) return;
+    setCurrentPage(page);
+    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      if (validCurrentPage <= 4) {
+        pages.push(1, 2, 3, 4, 5, '...', totalPages);
+      } else if (validCurrentPage >= totalPages - 3) {
+        pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      } else {
+        pages.push(1, '...', validCurrentPage - 1, validCurrentPage, validCurrentPage + 1, '...', totalPages);
+      }
+    }
+    return pages;
+  };
 
   const getPageTitle = () => {
     switch (type) {
@@ -145,34 +181,108 @@ export function Products() {
       ) : (
         <div className="flex-1">
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5">
-              {filteredProducts.map((product) => (
-                <div 
-                  key={product.id} 
-                  onClick={() => navigate(`/product/edit/${product.id}`)}
-                  className="bg-[#f8f9fa] rounded-xl overflow-hidden cursor-pointer hover:shadow-sm transition-all flex flex-col group border border-slate-100"
-                >
-                  <div className="aspect-square p-1.5 relative">
-                    {product.tags?.some(t => t.toUpperCase() === 'DISCONTINUE') && (
-                      <div className="absolute top-2.5 right-2.5 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md z-10 shadow-sm">
-                        DISCONTINUE
-                      </div>
-                    )}
-                    <div className="w-full h-full bg-[#e9ecef] rounded-lg overflow-hidden flex items-center justify-center">
-                      {product.thumbnail ? (
-                        <img src={product.thumbnail} alt={product.name} className="w-full h-full object-cover mix-blend-multiply" />
-                      ) : (
-                        <div className="text-slate-400 text-[10px] font-medium">No Image</div>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5">
+                {paginatedProducts.map((product) => (
+                  <div 
+                    key={product.id} 
+                    onClick={() => navigate(`/product/edit/${product.id}`)}
+                    className="bg-[#f8f9fa] rounded-xl overflow-hidden cursor-pointer hover:shadow-sm transition-all flex flex-col group border border-slate-100"
+                  >
+                    <div className="aspect-square p-1.5 relative">
+                      {product.tags?.some(t => t.toUpperCase() === 'DISCONTINUE') && (
+                        <div className="absolute top-2.5 right-2.5 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md z-10 shadow-sm">
+                          DISCONTINUE
+                        </div>
                       )}
+                      <div className="w-full h-full bg-[#e9ecef] rounded-lg overflow-hidden flex items-center justify-center">
+                        {product.thumbnail ? (
+                          <img 
+                            src={product.thumbnail} 
+                            alt={product.name} 
+                            loading="lazy"
+                            className="w-full h-full object-cover mix-blend-multiply" 
+                          />
+                        ) : (
+                          <div className="text-slate-400 text-[10px] font-medium">No Image</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="px-3 pb-3 pt-1.5 flex flex-col flex-1">
+                      <h3 className="text-[13px] font-bold text-slate-900 leading-snug line-clamp-2">{product.name}</h3>
+                      <p className="text-[11px] text-slate-500 mt-0.5 font-medium line-clamp-1">{product.subProduk || '-'}</p>
                     </div>
                   </div>
-                  <div className="px-3 pb-3 pt-1.5 flex flex-col flex-1">
-                    <h3 className="text-[13px] font-bold text-slate-900 leading-snug line-clamp-2">{product.name}</h3>
-                    <p className="text-[10px] text-slate-500 mt-0.5 font-medium line-clamp-1">Rp {(product.price || 0).toLocaleString('id-ID')} = 100 pc</p>
+                ))}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200">
+                  <p className="text-[13px] text-slate-500 font-medium order-2 sm:order-1">
+                    Menampilkan <span className="font-semibold text-slate-700">{startIndex + 1}</span> - <span className="font-semibold text-slate-700">{Math.min(startIndex + ITEMS_PER_PAGE, filteredProducts.length)}</span> dari <span className="font-semibold text-slate-700">{filteredProducts.length}</span> produk
+                  </p>
+
+                  <div className="flex items-center gap-1.5 order-1 sm:order-2">
+                    {/* Previous Button */}
+                    <button
+                      onClick={() => handlePageChange(validCurrentPage - 1)}
+                      disabled={validCurrentPage === 1}
+                      className={`px-3 py-1.5 rounded-lg text-[13px] font-medium border flex items-center transition-all ${
+                        validCurrentPage === 1
+                          ? 'opacity-40 cursor-not-allowed border-slate-200 text-slate-400 bg-slate-50'
+                          : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 shadow-sm active:scale-95'
+                      }`}
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-0.5" />
+                      Prev
+                    </button>
+
+                    {/* Page Numbers */}
+                    <div className="flex items-center gap-1">
+                      {getPageNumbers().map((p, idx) => {
+                        if (p === '...') {
+                          return (
+                            <span key={`ellipsis-${idx}`} className="px-2 py-1 text-slate-400 text-xs">
+                              ...
+                            </span>
+                          );
+                        }
+                        const pageNum = p as number;
+                        const isActive = pageNum === validCurrentPage;
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => handlePageChange(pageNum)}
+                            className={`min-w-[34px] h-[34px] flex items-center justify-center rounded-lg text-[13px] font-semibold transition-all ${
+                              isActive
+                                ? 'bg-[#4a5568] text-white shadow-sm'
+                                : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Next Button */}
+                    <button
+                      onClick={() => handlePageChange(validCurrentPage + 1)}
+                      disabled={validCurrentPage === totalPages}
+                      className={`px-3 py-1.5 rounded-lg text-[13px] font-medium border flex items-center transition-all ${
+                        validCurrentPage === totalPages
+                          ? 'opacity-40 cursor-not-allowed border-slate-200 text-slate-400 bg-slate-50'
+                          : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 shadow-sm active:scale-95'
+                      }`}
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4 ml-0.5" />
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           ) : (
             <div className="py-12">
               <EmptyState 
